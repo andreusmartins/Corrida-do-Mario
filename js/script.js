@@ -8,36 +8,63 @@ const Moeda = document.getElementById('Moeda');
 const placarM = document.getElementById('Moeda');
 const game = document.querySelector('.game-board')
 const learn = document.querySelector('learn-more')
+const Bala = document.querySelector('.Bala')
 
 // Variáveis de jogo
 let Pontu = 0;
 let PontuM = 0;
 let isJumping = false;
+let isAbaixar = false;
 
-
-function MarioClick() {
-  jump(); // Chama a função jump() quando o botão Learn More é clicado
-}
-
-// Função para realizar o pulo do Mari
-function jump() {
-  if (!isJumping) {
-    isJumping = true;
-    mario.classList.add("jump");
-    setTimeout(() => {
-      mario.classList.remove("jump");
-      isJumping = false;
-    }, 500);
+// Função para lidar com o evento de pressionar uma tecla
+function handleKeyDown(event) {
+  // Verifica se a tecla pressionada é a tecla de espaço (código 32)
+  if (event.keyCode === 32) {
+    if (!isJumping) {
+      isJumping = true;
+      mario.classList.add("jump");
+      setTimeout(() => {
+        mario.classList.remove("jump");
+        isJumping = false;
+      }, 500);
+    }
+  }
+  
+  // Verifica se a tecla pressionada é a tecla de seta para baixo (código 40)
+  if (event.keyCode === 40) {
+    if (!isAbaixar) {
+      isAbaixar = true;
+      mario.src = "./imagem/MarioAbaixando.png";
+      mario.style.width = "100px";
+      mario.style.bottom = "-20px";
+      mario.style.margin = "0px";
+      mario.style.border = "0px";
+    }
   }
 }
 
-// Adiciona evento de salto ao pressionar uma tecla
-document.addEventListener("keydown", jump);
+// Função para lidar com o evento de soltar uma tecla
+function handleKeyUp(event) {
+  // Verifica se a tecla solta é a tecla de seta para baixo (código 40)
+  if (event.keyCode === 40) {
+    isAbaixar = false;
+    mario.src = "./imagem/mario.gif"; // Volta para a imagem do Mario correndo
+    mario.style.width = "150px";
+    mario.style.bottom = "0px";
+  }
+}
+
+// Adiciona um ouvinte de evento para o evento de pressionar uma tecla
+document.addEventListener("keydown", handleKeyDown);
+
+// Adiciona um ouvinte de evento para o evento de soltar uma tecla
+document.addEventListener("keyup", handleKeyUp);
 
 // Loop principal do jogo
 const loop = setInterval(() => {
   // Obtém as posições do cano, do Mario e da moeda
   const pipePosition = pipe.offsetLeft;
+  const BalaPosition = Bala.offsetLeft;
   const marioPosition = +window.getComputedStyle(mario).bottom.replace("px", "");
   const MoedaPosition = Moeda.offsetLeft;
   const MoedaPlacar = placarM.offsetLeft;
@@ -65,18 +92,22 @@ const loop = setInterval(() => {
 
  // Avalia a condição e atribui true ou false a uma variável
 let conditionResult;
-if (pipePosition <= 120 && pipePosition > 0 && marioPosition < 80) {
-    conditionResult = true;
-} else {
-    conditionResult = false;
-}
 
+// Verifica se a bala atingiu o Mario ou se o Mario colidiu com o cano
+if ((BalaPosition <= 120 && BalaPosition > 0 && marioPosition < 80 && !isAbaixar) || (pipePosition <= 120 && pipePosition > 0 && marioPosition < 80)) {
+  conditionResult = true;
+} else {
+  conditionResult = false;
+}
+ 
 // Use a variável conditionResult no switch case
 switch (conditionResult) {
     case true:
         // Desativa a animação do cano
         pipe.style.animation = "none";
+        Bala.style.animation = "none";
         pipe.style.left = `${pipePosition}px`;
+        Bala.style.left = `${BalaPosition}px`;
 
         // Ajusta a posição e aparência do Mario
         mario.style.bottom = `${pipePosition}px`;
